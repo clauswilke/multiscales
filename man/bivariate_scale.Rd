@@ -5,13 +5,13 @@
 \alias{ScaleBivariate}
 \alias{bivariate_scale}
 \title{Constructor for bivariate scale object}
-\format{An object of class \code{ScaleBivariate} (inherits from \code{Scale}, \code{ggproto}, \code{gg}) of length 14.}
+\format{An object of class \code{ScaleBivariate} (inherits from \code{Scale}, \code{ggproto}, \code{gg}) of length 16.}
 \usage{
 bivariate_scale(aesthetics, scale_name, palette, name = waiver(),
-  breaks = waiver(), minor_breaks = waiver(), labels = waiver(),
-  limits = NULL, rescaler1 = rescale, rescaler2 = rescaler1,
-  oob = censor, expand = waiver(), na.value = NA_real_,
-  trans = "identity", guide = "none", super = ScaleBivariate)
+  breaks = waiver(), labels = waiver(), limits = NULL,
+  rescaler1 = rescale, rescaler2 = rescale, oob = censor,
+  expand = waiver(), na.value = NA_real_, trans1 = "identity",
+  trans2 = "identity", guide = "none", super = ScaleBivariate)
 }
 \arguments{
 \item{aesthetics}{The names of the aesthetics that this scale works with}
@@ -37,15 +37,6 @@ transformation object
 as output
 }}
 
-\item{minor_breaks}{One of:
-\itemize{
-\item \code{NULL} for no minor breaks
-\item \code{waiver()} for the default breaks (one minor break between
-each major break)
-\item A numeric vector of positions
-\item A function that given the limits returns a vector of minor breaks.
-}}
-
 \item{labels}{One of:
 \itemize{
 \item \code{NULL} for no labels
@@ -60,7 +51,7 @@ as output
 
 \item{rescaler1}{Rescaling function for the first data dimension.}
 
-\item{rescaler2}{Rescaling function for the second data dimension. By default, equal to \code{rescaler1}.}
+\item{rescaler2}{Rescaling function for the second data dimension.}
 
 \item{oob}{Function that handles limits outside of the scale limits
 (out of bounds). The default replaces out of bounds values with NA.}
@@ -74,16 +65,10 @@ expand the scale by 5\% on each side for continuous variables, and by
 
 \item{na.value}{Missing values will be replaced with this value.}
 
-\item{trans}{Either the name of a transformation object, or the
-object itself. Built-in transformations include "asn", "atanh",
-"boxcox", "exp", "identity", "log", "log10", "log1p", "log2",
-"logit", "probability", "probit", "reciprocal", "reverse" and "sqrt".
+\item{trans1}{Transformation for the first data dimension, given as either the name of a transformation object
+or the object itself. See \code{\link[ggplot2:continuous_scale]{ggplot2::continuous_scale()}} for details.}
 
-A transformation object bundles together a transform, it's inverse,
-and methods for generating breaks and labels. Transformation objects
-are defined in the scales package, and are called \code{name_trans}, e.g.
-\code{\link[scales:boxcox_trans]{scales::boxcox_trans()}}. You can create your own
-transformation with \code{\link[scales:trans_new]{scales::trans_new()}}.}
+\item{trans2}{Transformation for the second data dimension. Like \code{trans1}.}
 
 \item{guide}{A function used to create a guide or its name. See
 \code{\link[=guides]{guides()}} for more info.}

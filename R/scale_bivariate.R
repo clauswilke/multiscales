@@ -6,6 +6,8 @@ ScaleBivariate <- ggproto("ScaleBivariate", Scale,
   rescaler1 = rescale,
   rescaler2 = rescale,
   oob = censor,
+  trans1 = identity_trans,
+  trans2 = identity_trans,
 
   is_discrete = function() FALSE,
 
@@ -15,10 +17,15 @@ ScaleBivariate <- ggproto("ScaleBivariate", Scale,
   },
 
   transform = function(self, x) {
-    return(x) # transformation not yet implemented
-    #new_x <- self$trans$transform(x)
+    ## fix for data frames
+    x1 <- unlist(transpose(x)[[1]])
+    x2 <- unlist(transpose(x)[[2]])
 
-    #new_x
+    x1 <- self$trans1$transform(x1)
+    x2 <- self$trans2$transform(x2)
+
+    ## fix for data frames
+    zip(x1, x2)
   },
 
   map = function(self, x, limits = self$get_limits()) {
@@ -74,13 +81,16 @@ ScaleBivariate <- ggproto("ScaleBivariate", Scale,
 #'
 #' @inheritParams ggplot2::continuous_scale
 #' @param limits Data frame with two columns of length two each defining the limits for the two data dimensions.
+#' @param trans1 Transformation for the first data dimension, given as either the name of a transformation object
+#'   or the object itself. See [`ggplot2::continuous_scale()`] for details.
+#' @param trans2 Transformation for the second data dimension. Like `trans1`.
 #' @param rescaler1 Rescaling function for the first data dimension.
-#' @param rescaler2 Rescaling function for the second data dimension. By default, equal to `rescaler1`.
+#' @param rescaler2 Rescaling function for the second data dimension.
 #' @export
 bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
-                            breaks = waiver(), minor_breaks = waiver(), labels = waiver(), limits = NULL,
-                            rescaler1 = rescale, rescaler2 = rescaler1, oob = censor, expand = waiver(), na.value = NA_real_,
-                            trans = "identity", guide = "none", super = ScaleBivariate) {
+                            breaks = waiver(), labels = waiver(), limits = NULL,
+                            rescaler1 = rescale, rescaler2 = rescale, oob = censor, expand = waiver(), na.value = NA_real_,
+                            trans1 = "identity", trans2 = "identity", guide = "none", super = ScaleBivariate) {
 
   #check_breaks_labels(breaks, labels)
 
@@ -89,6 +99,9 @@ bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
   #}
   guide <- "none" # guide doesn't work yet
 
+  trans1 <- as.trans(trans1)
+  trans2 <- as.trans(trans2)
+
   if (!is.null(limits)) {
     # Check that limits are data frame or list with two columns of two values
     if (!is.list(limits)) {
@@ -96,13 +109,13 @@ bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
     } else if (length(limits) != 2 || length(limits[[1]]) != 2 || length(limits[[2]]) != 2) {
       stop("Limits need to be two values each for both data dimensions", call. = FALSE)
     }
-  }
 
-  #
-  #trans <- as.trans(trans)
-  #if (!is.null(limits)) {
-  #  limits <- trans$transform(limits)
-  #}
+    # limits are given and valid, need to transform
+    limits <- tibble(
+      limits1 = trans1$transform(limits[[1]]),
+      limits2 = trans2$transform(limits[[2]])
+    )
+  }
 
   ggproto(
     NULL, super,
@@ -112,9 +125,10 @@ bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
     scale_name = scale_name,
     palette = palette,
 
-    #range = continuous_range(),
+    range = bivariate_range(),
     limits = limits,
-    trans = trans,
+    trans1 = trans1,
+    trans2 = trans2,
     na.value = na.value,
     expand = expand,
     rescaler1 = rescaler1,
@@ -123,7 +137,6 @@ bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
 
     name = name,
     breaks = breaks,
-    minor_breaks = minor_breaks,
 
     labels = labels,
     guide = guide
