@@ -1,0 +1,31 @@
+Package: multiscales
+Type: Package
+Title: Multivariate scales for 'ggplot2'
+Version: 0.1.0
+Authors@R: c( 
+    person("Claus O.", "Wilke", , "wilke@austin.utexas.edu", c("cre", "aut")))
+Description: Multivariate scales for 'ggplot2'. 
+URL: https://github.com/clauswilke/multiscales
+Depends:
+    R (>= 3.2)
+Imports:
+    ggplot2 (>= 2.2.1),
+    purrr,
+    tibble,
+    scales,
+    withr (>= 2.1.1)
+License: GPL-2 | file LICENSE
+LazyData: true
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat,
+    vdiffr
+VignetteBuilder: knitr
+Collate:
+    'multiscales.R'
+    'range_bivariate.R'
+    'scale_bivariate.R'
+    'zip.R'
+RoxygenNote: 6.0.1.9000
+Roxygen: list(markdown = TRUE)
