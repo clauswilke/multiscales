@@ -5,13 +5,13 @@
 \alias{ScaleBivariate}
 \alias{bivariate_scale}
 \title{Constructor for bivariate scale object}
-\format{An object of class \code{ScaleBivariate} (inherits from \code{Scale}, \code{ggproto}, \code{gg}) of length 13.}
+\format{An object of class \code{ScaleBivariate} (inherits from \code{Scale}, \code{ggproto}, \code{gg}) of length 14.}
 \usage{
 bivariate_scale(aesthetics, scale_name, palette, name = waiver(),
   breaks = waiver(), minor_breaks = waiver(), labels = waiver(),
-  limits = NULL, rescaler = rescale, oob = censor, expand = waiver(),
-  na.value = NA_real_, trans = "identity", guide = "none",
-  super = ScaleBivariate)
+  limits = NULL, rescaler1 = rescale, rescaler2 = rescaler1,
+  oob = censor, expand = waiver(), na.value = NA_real_,
+  trans = "identity", guide = "none", super = ScaleBivariate)
 }
 \arguments{
 \item{aesthetics}{The names of the aesthetics that this scale works with}
@@ -56,12 +56,11 @@ transformation object
 as output
 }}
 
-\item{limits}{A numeric vector of length two providing limits of the scale.
-Use \code{NA} to refer to the existing minimum or maximum.}
+\item{limits}{Data frame with two columns of length two each defining the limits for the two data dimensions.}
 
-\item{rescaler}{Used by diverging and n colour gradients
-(i.e. \code{\link[=scale_colour_gradient2]{scale_colour_gradient2()}}, \code{\link[=scale_colour_gradientn]{scale_colour_gradientn()}}).
-A function used to scale the input values to the range \eqn{[0, 1]}.}
+\item{rescaler1}{Rescaling function for the first data dimension.}
+
+\item{rescaler2}{Rescaling function for the second data dimension. By default, equal to \code{rescaler1}.}
 
 \item{oob}{Function that handles limits outside of the scale limits
 (out of bounds). The default replaces out of bounds values with NA.}

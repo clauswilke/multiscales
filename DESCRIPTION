@@ -24,6 +24,7 @@ Suggests:
 VignetteBuilder: knitr
 Collate:
     'multiscales.R'
+    'pal_hue_sat.R'
     'range_bivariate.R'
     'scale_bivariate.R'
     'zip.R'

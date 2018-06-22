@@ -21,25 +21,17 @@ library(ggplot2)
 library(multiscales)
 ```
 
-Define a multivariate palette function:
+Make multivariate color plot:
 
 ``` r
-pal_hsv <- function(v = 1) {
-  function(h, s){
-    hsv(h, s, v)
-  }
-}
-```
-
-Make multivariate color
-plot:
-
-``` r
-d <- expand.grid(x = seq(0, 1, length.out = 50), y = seq(0, 1, length.out = 50))
+d <- expand.grid(x = 1:100, y = 1:100)
 
 ggplot(d, aes(x, y, fill = zip(x, y))) +
   geom_tile() +
-  bivariate_scale("fill", "bivariate_scale", pal_hsv(0.7))
+  bivariate_scale(
+    "fill", "bivariate_scale",
+    palette = pal_hue_sat(h_range = c(0.2, 0.8), s_range = c(0, .6), v = 0.7)
+  )
 ```
 
-![](man/figures/README-unnamed-chunk-4-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-3-1.png)<!-- -->
