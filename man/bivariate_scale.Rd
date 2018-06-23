@@ -5,7 +5,7 @@
 \alias{ScaleBivariate}
 \alias{bivariate_scale}
 \title{Constructor for bivariate scale object}
-\format{An object of class \code{ScaleBivariate} (inherits from \code{Scale}, \code{ggproto}, \code{gg}) of length 16.}
+\format{An object of class \code{ScaleBivariate} (inherits from \code{Scale}, \code{ggproto}, \code{gg}) of length 17.}
 \usage{
 bivariate_scale(aesthetics, scale_name, palette, name = waiver(),
   breaks = waiver(), labels = waiver(), limits = NULL,

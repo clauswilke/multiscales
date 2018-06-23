@@ -9,8 +9,13 @@ URL: https://github.com/clauswilke/multiscales
 Depends:
     R (>= 3.2)
 Imports:
+    digest,
+    grid,
+    gtable,
     ggplot2 (>= 2.2.1),
     purrr,
+    plyr,
+    rlang,
     tibble,
     scales,
     withr (>= 2.1.1)
@@ -23,10 +28,12 @@ Suggests:
     vdiffr
 VignetteBuilder: knitr
 Collate:
+    'guide_colourbox.R'
     'multiscales.R'
     'pal_hue_sat.R'
     'range_bivariate.R'
     'scale_bivariate.R'
+    'utilities_ggplot2.R'
     'zip.R'
 RoxygenNote: 6.0.1.9000
 Roxygen: list(markdown = TRUE)

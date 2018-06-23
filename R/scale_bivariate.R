@@ -10,6 +10,7 @@ ScaleBivariate <- ggproto("ScaleBivariate", Scale,
   trans2 = identity_trans,
 
   is_discrete = function() FALSE,
+  is_bivariate = function() TRUE,
 
   train = function(self, x) {
     if (length(x) == 0) return()
@@ -97,7 +98,6 @@ bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
   #if (is.null(breaks) && !is_position_aes(aesthetics) && guide != "none") {
   #  guide <- "none"
   #}
-  guide <- "none" # guide doesn't work yet
 
   trans1 <- as.trans(trans1)
   trans2 <- as.trans(trans2)
