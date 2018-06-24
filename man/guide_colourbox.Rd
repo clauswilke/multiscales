@@ -5,11 +5,13 @@
 \alias{guide_colorbox}
 \title{Colourbox guide}
 \usage{
-guide_colourbox(barwidth = NULL, barheight = NULL, nbin = 5,
+guide_colourbox(title = waiver(), title.theme = NULL, title.hjust = NULL,
+  title.vjust = NULL, barwidth = NULL, barheight = NULL, nbin = 20,
   reverse = FALSE, order = 0, available_aes = c("colour", "color",
   "fill"), ...)
 
-guide_colorbox(barwidth = NULL, barheight = NULL, nbin = 5,
+guide_colorbox(title = waiver(), title.theme = NULL, title.hjust = NULL,
+  title.vjust = NULL, barwidth = NULL, barheight = NULL, nbin = 20,
   reverse = FALSE, order = 0, available_aes = c("colour", "color",
   "fill"), ...)
 }

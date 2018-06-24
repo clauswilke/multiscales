@@ -3,10 +3,16 @@
 #' @export
 guide_colourbox <- function(
 
+  # title
+  title = waiver(),
+  title.theme = NULL,
+  title.hjust = NULL,
+  title.vjust = NULL,
+
   # bar
   barwidth = NULL,
   barheight = NULL,
-  nbin = 20,
+  nbin = 100,
 
   # general
   reverse = FALSE,
@@ -19,6 +25,11 @@ guide_colourbox <- function(
   if (!is.null(barheight) && !is.unit(barheight)) barheight <- unit(barheight, default.unit)
 
   structure(list(
+    # title
+    title = title,
+    title.theme = title.theme,
+    title.hjust = title.hjust,
+    title.vjust = title.vjust,
 
     # bar
     barwidth = barwidth,
@@ -126,21 +137,92 @@ guide_gengrob.colourbox <- function(guide, theme) {
 
   # make the bar grob (`grob.bar`)
   image <- matrix(guide$box$colour, nrow = guide$nbin, ncol = guide$nbin, byrow = TRUE)
-  grob.box <- rasterGrob(image = image, width = boxwidth, height = boxheight, default.units = "cm", gp = gpar(col = NA), interpolate = TRUE)
+  grob.box <- rasterGrob(
+    image = image, width = boxwidth, height = boxheight, default.units = "cm",
+    gp = gpar(col = NA), interpolate = FALSE
+  )
+
+  # titles
+
+  # obtain the theme for the legend title. We need this both for the title grob
+  # and to obtain the title fontsize.
+  title.theme <- guide$title.theme %||% calc_element("legend.title", theme)
+
+  title.hjust <- guide$title.hjust %||% theme$legend.title.align %||% title.theme$hjust %||% 0
+  title.vjust <- guide$title.vjust %||% title.theme$vjust %||% 0.5
+
+  grob.title1 <- ggname(
+    "guide.title1",
+    element_grob(
+      title.theme,
+      label = guide$title[1],
+      hjust = title.hjust,
+      vjust = title.vjust,
+      margin_x = TRUE,
+      margin_y = TRUE
+    )
+  )
+
+  grob.title2 <- ggname(
+    "guide.title2",
+    element_grob(
+      title.theme,
+      label = guide$title[2],
+      hjust = title.hjust,
+      vjust = title.vjust,
+      margin_x = TRUE,
+      margin_y = TRUE
+    )
+  )
+
+
+  title_width <- width_cm(grob.title1)
+  title_height <- height_cm(grob.title1)
+  title_fontsize <- title.theme$size %||% calc_element("legend.title", theme)$size %||% 0
+
+  # gap between keys etc
+  # the default horizontal and vertical gap need to be the same to avoid strange
+  # effects for certain guide layouts
+  hgap <- width_cm(theme$legend.spacing.x  %||% (0.5 * unit(title_fontsize, "pt")))
+  vgap <- height_cm(theme$legend.spacing.y %||% (0.5 * unit(title_fontsize, "pt")))
+
+  # box and label widths/heights
+  bl_widths <- c(boxwidth)
+  bl_heights <- c(boxheight)
+
+  widths <- c(bl_widths, max(0, title_width - sum(bl_widths)))
+  heights <- c(title_height, vgap, bl_heights)
 
   # background
-  grob.background <- ggplot2:::element_render(theme, "legend.background")
+  grob.background <- element_render(theme, "legend.background")
   # padding
   padding <- convertUnit(theme$legend.margin %||% margin(), "cm")
-  widths <- c(padding[4], boxwidth, padding[2])
-  heights <- c(padding[1], boxheight, padding[3])
+  widths <- c(padding[4], widths, padding[2])
+  heights <- c(padding[1], heights, padding[3])
 
   gt <- gtable(widths = unit(widths, "cm"), heights = unit(heights, "cm"))
-  gt <- gtable_add_grob(gt, grob.background, name = "background", clip = "off",
-                        t = 1, r = -1, b = -1, l = 1)
-  gt <- gtable_add_grob(gt, grob.box, name = "box", clip = "off",
-                        t = 1 + 1, r = 1 + 1,
-                        b = 1 + 1, l = 1 + 1)
+  gt <- gtable_add_grob(
+    gt, grob.background, name = "background", clip = "off",
+    t = 1, r = -1, b = -1, l = 1
+  )
+  gt <- gtable_add_grob(
+    gt, grob.box, name = "box", clip = "off",
+    t = 1 + 3, r = 1 + 1,
+    b = 1 + 3, l = 1 + 1
+  )
+  gt <- gtable_add_grob(
+    gt,
+    justify_grobs(
+      grob.title1,
+      hjust = title.hjust,
+      vjust = title.vjust,
+      int_angle = title.theme$angle,
+      debug = title.theme$debug
+    ),
+    name = "title", clip = "off",
+    t = 1 + 1, r = 1 + 1,
+    b = 1 + 1, l = 1 + 1
+  )
 
   gt
 }

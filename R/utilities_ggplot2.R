@@ -31,3 +31,8 @@ matched_aes <- function(layer, guide, defaults) {
   matched <- setdiff(matched, names(layer$geom_params))
   setdiff(matched, names(layer$aes_params))
 }
+
+# not copied for now
+element_render <- ggplot2:::element_render
+ggname <- ggplot2:::ggname
+justify_grobs <- ggplot2:::justify_grobs

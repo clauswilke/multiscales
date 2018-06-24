@@ -9,6 +9,7 @@ URL: https://github.com/clauswilke/multiscales
 Depends:
     R (>= 3.2)
 Imports:
+    colorspace,
     digest,
     grid,
     gtable,
@@ -22,6 +23,8 @@ Imports:
 License: GPL-2 | file LICENSE
 LazyData: true
 Suggests:
+    dplyr,
+    MASS,
     knitr,
     rmarkdown,
     testthat,
@@ -31,6 +34,7 @@ Collate:
     'guide_colourbox.R'
     'multiscales.R'
     'pal_hue_sat.R'
+    'pal_carto_bivariate.R'
     'range_bivariate.R'
     'scale_bivariate.R'
     'utilities_ggplot2.R'
