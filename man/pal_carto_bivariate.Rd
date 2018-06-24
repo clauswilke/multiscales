@@ -6,10 +6,10 @@
 \title{Bivariate palette based on Carto colors}
 \usage{
 pal_carto_bivariate(palette = "Earth", max_light = 0.8, pow_light = 0.5,
-  rev = FALSE)
+  ...)
 
 pal_carto_vsup(palette = "Earth", max_light = 0.8, pow_light = 0.5,
-  rev = FALSE, unc_levels = 4)
+  unc_levels = 4, ...)
 }
 \arguments{
 \item{palette}{Name of the palette}
@@ -18,7 +18,7 @@ pal_carto_vsup(palette = "Earth", max_light = 0.8, pow_light = 0.5,
 
 \item{pow_light}{Power exponent on lightening}
 
-\item{rev}{Reverse direction along value dimension}
+\item{...}{Other arguments to be given to \code{carto_hcl()}}
 
 \item{unc_levels}{Number of discrete uncertainty levels. The number of discrete colors at each level doubles.}
 }

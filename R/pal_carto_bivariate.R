@@ -5,10 +5,10 @@
 #' @param palette Name of the palette
 #' @param max_light Maximum amount of lightening
 #' @param pow_light Power exponent on lightening
-#' @param rev Reverse direction along value dimension
+#' @param ... Other arguments to be given to `carto_hcl()`
 #' @export
-pal_carto_bivariate <- function(palette = "Earth", max_light = 0.8, pow_light = 0.5, rev = FALSE) {
-  cols <- colorspace::carto_hcl(11, palette = palette, rev = rev)
+pal_carto_bivariate <- function(palette = "Earth", max_light = 0.8, pow_light = 0.5, ...) {
+  cols <- colorspace::carto_hcl(n = 11, palette = palette, ...)
   ramp <- colour_ramp(cols)
 
   function(v, u){
@@ -21,10 +21,10 @@ pal_carto_bivariate <- function(palette = "Earth", max_light = 0.8, pow_light = 
 #' @rdname pal_carto_bivariate
 #' @param unc_levels Number of discrete uncertainty levels. The number of discrete colors at each level doubles.
 #' @export
-pal_carto_vsup <- function(palette = "Earth", max_light = 0.8, pow_light = 0.5, rev = FALSE, unc_levels = 4) {
+pal_carto_vsup <- function(palette = "Earth", max_light = 0.8, pow_light = 0.5, unc_levels = 4, ...) {
   n <- 2^(unc_levels - 1)
 
-  cols <- colorspace::carto_hcl(n, palette = palette, rev = rev)
+  cols <- colorspace::carto_hcl(n = n, palette = palette, ...)
 
   map_to_discrete <- function(v, u) {
     u <- 1 - u # u = 0 means maximum certainty
