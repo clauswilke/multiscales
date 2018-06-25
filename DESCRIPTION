@@ -39,5 +39,6 @@ Collate:
     'scale_bivariate.R'
     'utilities_ggplot2.R'
     'zip.R'
+    'FL_house_values.R'
 RoxygenNote: 6.0.1.9000
 Roxygen: list(markdown = TRUE)

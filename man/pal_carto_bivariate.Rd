@@ -5,18 +5,22 @@
 \alias{pal_carto_vsup}
 \title{Bivariate palette based on Carto colors}
 \usage{
-pal_carto_bivariate(palette = "Earth", max_light = 0.8, pow_light = 0.5,
-  ...)
+pal_carto_bivariate(palette = "Earth", max_light = 0.9, max_desat = 0.9,
+  pow_light = 0.5, pow_desat = 1, ...)
 
-pal_carto_vsup(palette = "Earth", max_light = 0.8, pow_light = 0.5,
-  unc_levels = 4, ...)
+pal_carto_vsup(palette = "Earth", max_light = 0.9, max_desat = 0.9,
+  pow_light = 0.5, pow_desat = 1, unc_levels = 4, ...)
 }
 \arguments{
 \item{palette}{Name of the palette}
 
 \item{max_light}{Maximum amount of lightening}
 
-\item{pow_light}{Power exponent on lightening}
+\item{max_desat}{Maximum amount of desaturation}
+
+\item{pow_light}{Power exponent of lightening}
+
+\item{pow_desat}{Power exponent of desaturation}
 
 \item{...}{Other arguments to be given to \code{carto_hcl()}}
 
