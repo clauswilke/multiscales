@@ -31,7 +31,7 @@
 #'   )
 #'
 #' # bivariate value-suppressing uncertainty scale
-#' ggplot(FL_house_values, aes(fill = zip(estimate, moe))) +
+#' ggplot(FL_house_values, aes(fill = zip(estimate, moe/estimate))) +
 #'   geom_sf(color = "gray30", size = 0.2) +
 #'   coord_sf(xlim = c(-88, -79.8), ylim = c(24.1, 31.2), datum = NA) +
 #'   bivariate_scale(

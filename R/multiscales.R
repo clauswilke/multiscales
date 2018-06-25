@@ -17,5 +17,5 @@ NULL
 # *************************************************
 
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage("Note: The package \"multiscales\" is highly experimental. It may not work at all. Use at your own risk.")
+  packageStartupMessage("Note: The package \"multiscales\" is highly experimental. Use at your own risk.")
 }
