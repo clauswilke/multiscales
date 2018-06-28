@@ -5,6 +5,7 @@ guide_colourbox <- function(
 
   # title
   title = waiver(),
+  title1.position = "top",
   title.theme = NULL,
   title.hjust = NULL,
   title.vjust = NULL,
@@ -27,6 +28,7 @@ guide_colourbox <- function(
   structure(list(
     # title
     title = title,
+    title1.position = title1.position,
     title.theme = title.theme,
     title.hjust = title.hjust,
     title.vjust = title.vjust,
@@ -131,6 +133,7 @@ guide_geom.colourbox <- function(guide, layers, default_mapping) {
 
 #' @export
 guide_gengrob.colourbox <- function(guide, theme) {
+
   boxwidth <- width_cm(theme$legend.key.width * 5)
   boxheight <- height_cm(theme$legend.key.height * 5)
   nbreak <- nrow(guide$key)
@@ -190,8 +193,32 @@ guide_gengrob.colourbox <- function(guide, theme) {
   bl_widths <- c(boxwidth)
   bl_heights <- c(boxheight)
 
-  widths <- c(bl_widths, max(0, title_width - sum(bl_widths)))
-  heights <- c(title_height, vgap, bl_heights)
+  vps <- list(box.row = 1, box.col = 1, label.row = 0, label.col = 0)
+
+  if (guide$title1.position == "top") {
+    widths <- c(bl_widths, max(0, title_width - sum(bl_widths)))
+    heights <- c(title_height, vgap, bl_heights)
+    vps <- with(
+      vps,
+      list(
+        box.row = box.row + 2, box.col = box.col,
+        label.row = label.row + 2, label.col = label.col,
+        title1.row = 1, title1.col = 1:length(widths)
+      )
+    )
+  } else {
+    widths <- c(bl_widths, max(0, title_width - sum(bl_widths)))
+    heights <- c(bl_heights, vgap, title_height)
+    vps <- with(
+      vps,
+      list(
+        box.row = box.row, box.col = box.col,
+        label.row = label.row, label.col = label.col,
+        title1.row = length(heights), title1.col = 1:length(widths)
+      )
+    )
+  }
+
 
   # background
   grob.background <- element_render(theme, "legend.background")
@@ -207,8 +234,8 @@ guide_gengrob.colourbox <- function(guide, theme) {
   )
   gt <- gtable_add_grob(
     gt, grob.box, name = "box", clip = "off",
-    t = 1 + 3, r = 1 + 1,
-    b = 1 + 3, l = 1 + 1
+    t = 1 + min(vps$box.row), r = 1 + max(vps$box.col),
+    b = 1 + max(vps$box.row), l = 1 + min(vps$box.col)
   )
   gt <- gtable_add_grob(
     gt,
@@ -220,8 +247,8 @@ guide_gengrob.colourbox <- function(guide, theme) {
       debug = title.theme$debug
     ),
     name = "title", clip = "off",
-    t = 1 + 1, r = 1 + 1,
-    b = 1 + 1, l = 1 + 1
+    t = 1 + min(vps$title1.row), r = 1 + max(vps$title1.col),
+    b = 1 + max(vps$title1.row), l = 1 + min(vps$title1.col)
   )
 
   gt
