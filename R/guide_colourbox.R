@@ -189,43 +189,44 @@ guide_gengrob.colourbox <- function(guide, theme) {
   hgap <- width_cm(theme$legend.spacing.x  %||% (0.5 * unit(title_fontsize, "pt")))
   vgap <- height_cm(theme$legend.spacing.y %||% (0.5 * unit(title_fontsize, "pt")))
 
-  # box and label widths/heights
-  bl_widths <- c(boxwidth)
-  bl_heights <- c(boxheight)
+  # legend padding
+  padding <- convertUnit(theme$legend.margin %||% margin(), "cm")
 
-  vps <- list(box.row = 1, box.col = 1, label.row = 0, label.col = 0)
+  # we set up the entire legend as an 11x11 table which contains:
+  # margin, title, gap, labels, ticks, box, ticks, labels, gap, title, margin
+  # depending on where titles and labels are added, some cells remain empty
 
-  if (guide$title1.position == "top") {
-    widths <- c(bl_widths, max(0, title_width - sum(bl_widths)))
-    heights <- c(title_height, vgap, bl_heights)
-    vps <- with(
-      vps,
-      list(
-        box.row = box.row + 2, box.col = box.col,
-        label.row = label.row + 2, label.col = label.col,
-        title1.row = 1, title1.col = 1:length(widths)
-      )
+  widths <- c(padding[4], 0, 0, 0, 0, boxwidth, 0, 0, 0, 0, padding[2])
+  heights <- c(padding[1], 0, 0, 0, 0, boxheight, 0, 0, 0, 0, padding[3])
+
+  # titles
+  grob.title1.top <- NULL
+  grob.title1.bottom <- NULL
+  if (guide$title1.position %in% c("top", "both")) {
+    heights[2] <- title_height
+    heights[3] <- vgap
+    grob.title1.top <- justify_grobs(
+      grob.title1,
+      hjust = title.hjust,
+      vjust = title.vjust,
+      int_angle = title.theme$angle,
+      debug = title.theme$debug
     )
-  } else {
-    widths <- c(bl_widths, max(0, title_width - sum(bl_widths)))
-    heights <- c(bl_heights, vgap, title_height)
-    vps <- with(
-      vps,
-      list(
-        box.row = box.row, box.col = box.col,
-        label.row = label.row, label.col = label.col,
-        title1.row = length(heights), title1.col = 1:length(widths)
-      )
+  }
+  if (guide$title1.position %in% c("bottom", "both")) {
+    heights[10] <- title_height
+    heights[9] <- vgap
+    grob.title1.bottom <- justify_grobs(
+      grob.title1,
+      hjust = title.hjust,
+      vjust = title.vjust,
+      int_angle = title.theme$angle,
+      debug = title.theme$debug
     )
   }
 
-
   # background
   grob.background <- element_render(theme, "legend.background")
-  # padding
-  padding <- convertUnit(theme$legend.margin %||% margin(), "cm")
-  widths <- c(padding[4], widths, padding[2])
-  heights <- c(padding[1], heights, padding[3])
 
   gt <- gtable(widths = unit(widths, "cm"), heights = unit(heights, "cm"))
   gt <- gtable_add_grob(
@@ -234,22 +235,20 @@ guide_gengrob.colourbox <- function(guide, theme) {
   )
   gt <- gtable_add_grob(
     gt, grob.box, name = "box", clip = "off",
-    t = 1 + min(vps$box.row), r = 1 + max(vps$box.col),
-    b = 1 + max(vps$box.row), l = 1 + min(vps$box.col)
+    t = 6, r = 6, b = 6, l = 6
   )
-  gt <- gtable_add_grob(
-    gt,
-    justify_grobs(
-      grob.title1,
-      hjust = title.hjust,
-      vjust = title.vjust,
-      int_angle = title.theme$angle,
-      debug = title.theme$debug
-    ),
-    name = "title", clip = "off",
-    t = 1 + min(vps$title1.row), r = 1 + max(vps$title1.col),
-    b = 1 + max(vps$title1.row), l = 1 + min(vps$title1.col)
-  )
+  if (!is.null(grob.title1.top)) {
+    gt <- gtable_add_grob(
+      gt, grob.title1.top, name = "title1", clip = "off",
+      t = 2, r = 6, b = 2, l = 6
+    )
+  }
+  if (!is.null(grob.title1.bottom)) {
+    gt <- gtable_add_grob(
+      gt, grob.title1.bottom, name = "title1", clip = "off",
+      t = 10, r = 6, b = 10, l = 6
+    )
+  }
 
   gt
 }
