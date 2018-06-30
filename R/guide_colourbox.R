@@ -6,6 +6,7 @@ guide_colourbox <- function(
   # title
   title = waiver(),
   title1.position = "top",
+  title2.position = "right",
   title.theme = NULL,
   title.hjust = NULL,
   title.vjust = NULL,
@@ -29,6 +30,7 @@ guide_colourbox <- function(
     # title
     title = title,
     title1.position = title1.position,
+    title2.position = title2.position,
     title.theme = title.theme,
     title.hjust = title.hjust,
     title.vjust = title.vjust,
@@ -154,38 +156,52 @@ guide_gengrob.colourbox <- function(guide, theme) {
   title.hjust <- guide$title.hjust %||% theme$legend.title.align %||% title.theme$hjust %||% 0
   title.vjust <- guide$title.vjust %||% title.theme$vjust %||% 0.5
 
-  grob.title1 <- ggname(
-    "guide.title1",
-    element_grob(
-      title.theme,
-      label = guide$title[1],
-      hjust = title.hjust,
-      vjust = title.vjust,
-      margin_x = TRUE,
-      margin_y = TRUE
+  # make title grobs if needed
+  title1.label <- guide$title[1]
+  title1.position <- guide$title1.position
+  if (is.null(title1.label) || is.na(title1.label)) {
+    title1.position <- "none"
+  } else {
+    grob.title1 <- ggname(
+      "guide.title1",
+      element_grob(
+        title.theme,
+        label = title1.label,
+        hjust = title.hjust,
+        vjust = title.vjust,
+        margin_x = TRUE,
+        margin_y = TRUE
+      )
     )
-  )
+    title1_width <- width_cm(grob.title1)
+    title1_height <- height_cm(grob.title1)
+  }
 
-  grob.title2 <- ggname(
-    "guide.title2",
-    element_grob(
-      title.theme,
-      label = guide$title[2],
-      hjust = title.hjust,
-      vjust = title.vjust,
-      margin_x = TRUE,
-      margin_y = TRUE
+  title2.label <- guide$title[2]
+  title2.position <- guide$title2.position
+  if (is.null(title2.label) || is.na(title2.label)) {
+    title2.position <- "none"
+  } else {
+    grob.title2 <- ggname(
+      "guide.title2",
+      element_grob(
+        title.theme,
+        label = title2.label,
+        hjust = title.hjust,
+        vjust = title.vjust,
+        angle = -90, # angle hard-coded for now, needs to be fixed eventually, also further down in `justify_grobs()`
+        margin_x = TRUE,
+        margin_y = TRUE
+      )
     )
-  )
-
-
-  title_width <- width_cm(grob.title1)
-  title_height <- height_cm(grob.title1)
-  title_fontsize <- title.theme$size %||% calc_element("legend.title", theme)$size %||% 0
+    title2_width <- width_cm(grob.title2)
+    title2_height <- height_cm(grob.title2)
+  }
 
   # gap between keys etc
   # the default horizontal and vertical gap need to be the same to avoid strange
   # effects for certain guide layouts
+  title_fontsize <- title.theme$size %||% calc_element("legend.title", theme)$size %||% 0
   hgap <- width_cm(theme$legend.spacing.x  %||% (0.5 * unit(title_fontsize, "pt")))
   vgap <- height_cm(theme$legend.spacing.y %||% (0.5 * unit(title_fontsize, "pt")))
 
@@ -202,8 +218,8 @@ guide_gengrob.colourbox <- function(guide, theme) {
   # titles
   grob.title1.top <- NULL
   grob.title1.bottom <- NULL
-  if (guide$title1.position %in% c("top", "both")) {
-    heights[2] <- title_height
+  if (title1.position %in% c("top", "both")) {
+    heights[2] <- title1_height
     heights[3] <- vgap
     grob.title1.top <- justify_grobs(
       grob.title1,
@@ -213,14 +229,39 @@ guide_gengrob.colourbox <- function(guide, theme) {
       debug = title.theme$debug
     )
   }
-  if (guide$title1.position %in% c("bottom", "both")) {
-    heights[10] <- title_height
+  if (title1.position %in% c("bottom", "both")) {
+    heights[10] <- title1_height
     heights[9] <- vgap
     grob.title1.bottom <- justify_grobs(
       grob.title1,
       hjust = title.hjust,
       vjust = title.vjust,
       int_angle = title.theme$angle,
+      debug = title.theme$debug
+    )
+  }
+
+  grob.title2.left <- NULL
+  grob.title2.right <- NULL
+  if (title2.position %in% c("left", "both")) {
+    widths[2] <- title2_width
+    widths[3] <- hgap
+    grob.title2.left <- justify_grobs(
+      grob.title2,
+      hjust = title.hjust,
+      vjust = title.vjust,
+      int_angle = -90,
+      debug = title.theme$debug
+    )
+  }
+  if (title2.position %in% c("right", "both")) {
+    widths[10] <- title2_width
+    widths[9] <- hgap
+    grob.title2.right <- justify_grobs(
+      grob.title2,
+      hjust = title.hjust,
+      vjust = title.vjust,
+      int_angle = -90,
       debug = title.theme$debug
     )
   }
@@ -247,6 +288,18 @@ guide_gengrob.colourbox <- function(guide, theme) {
     gt <- gtable_add_grob(
       gt, grob.title1.bottom, name = "title1", clip = "off",
       t = 10, r = 6, b = 10, l = 6
+    )
+  }
+  if (!is.null(grob.title2.left)) {
+    gt <- gtable_add_grob(
+      gt, grob.title2.left, name = "title2", clip = "off",
+      t = 6, r = 2, b = 6, l = 2
+    )
+  }
+  if (!is.null(grob.title2.right)) {
+    gt <- gtable_add_grob(
+      gt, grob.title2.right, name = "title2", clip = "off",
+      t = 6, r = 10, b = 6, l = 10
     )
   }
 
