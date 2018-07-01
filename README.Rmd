@@ -35,13 +35,14 @@ library(ggplot2)
 library(multiscales)
 library(colorspace)
 
-ggplot(FL_house_values, aes(fill = zip(estimate, moe/estimate))) +
+ggplot(FL_house_values, aes(fill = zip(estimate/1000, moe/estimate))) +
   geom_sf(color = "gray30", size = 0.2) +
   coord_sf(xlim = c(-88, -79.8), ylim = c(24.1, 31.2), datum = NA) +
   bivariate_scale("fill",
     pal_carto_vsup(palette = "Sunset", rev = TRUE),
     guide = "colourbox",
-    name = c("median house values", "uncertainty")
+    labels = list(waiver(), scales::percent),
+    name = c("median house\nvalues ($1K)", "uncertainty")
   ) +
   theme_void() +
   theme(
@@ -54,12 +55,12 @@ ggplot(FL_house_values, aes(fill = zip(estimate, moe/estimate))) +
 
 For comparison, the same plot with a univariate color scale:
 ```{r message = FALSE}
-ggplot(FL_house_values, aes(fill = estimate)) +
+ggplot(FL_house_values, aes(fill = estimate/1000)) +
   geom_sf(color = "gray30", size = 0.2) +
   coord_sf(xlim = c(-88, -79.8), ylim = c(24.1, 31.2), datum = NA) +
   scale_fill_continuous_carto(
     palette = "Sunset", rev = TRUE,
-    name = "median house values",
+    name = "median house values ($1K)",
     guide = guide_colorbar(
       direction = "horizontal",
       label.position = "bottom",

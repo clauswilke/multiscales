@@ -7,15 +7,15 @@
 \usage{
 guide_colourbox(title = waiver(), title.x.position = "top",
   title.y.position = "right", title.theme = NULL, title.hjust = NULL,
-  title.vjust = NULL, barwidth = NULL, barheight = NULL, nbin = 100,
-  reverse = FALSE, order = 0, available_aes = c("colour", "color",
-  "fill"), ...)
+  title.vjust = NULL, label = TRUE, label.theme = NULL, barwidth = NULL,
+  barheight = NULL, nbin = 100, reverse = FALSE, order = 0,
+  available_aes = c("colour", "color", "fill"), ...)
 
 guide_colorbox(title = waiver(), title.x.position = "top",
   title.y.position = "right", title.theme = NULL, title.hjust = NULL,
-  title.vjust = NULL, barwidth = NULL, barheight = NULL, nbin = 100,
-  reverse = FALSE, order = 0, available_aes = c("colour", "color",
-  "fill"), ...)
+  title.vjust = NULL, label = TRUE, label.theme = NULL, barwidth = NULL,
+  barheight = NULL, nbin = 100, reverse = FALSE, order = 0,
+  available_aes = c("colour", "color", "fill"), ...)
 }
 \description{
 Colourbox guide

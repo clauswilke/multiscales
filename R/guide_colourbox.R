@@ -8,8 +8,12 @@ guide_colourbox <- function(
   title.x.position = "top",
   title.y.position = "right",
   title.theme = NULL,
-  title.hjust = NULL,
-  title.vjust = NULL,
+  title.hjust = NULL, ## can be deleted?
+  title.vjust = NULL, ## can be deleted?
+
+  # label
+  label = TRUE,
+  label.theme = NULL,
 
   # bar
   barwidth = NULL,
@@ -34,6 +38,10 @@ guide_colourbox <- function(
     title.theme = title.theme,
     title.hjust = title.hjust,
     title.vjust = title.vjust,
+
+    # label
+    label = label,
+    label.theme = label.theme,
 
     # bar
     barwidth = barwidth,
@@ -66,15 +74,15 @@ guide_train.colourbox <- function(guide, scale, aesthetic = NULL) {
     return(NULL)
   }
 
-  # create data frame for tick display
-  ## Uncomment once breaks are properly implemented
-  #breaks <- scale$get_breaks()
-  #if (length(breaks) == 0 || all(is.na(breaks)))
-  #  return()
+  # create tick positions and labels
+  breaks <- scale$get_breaks()
+  if (length(breaks[[1]]) == 0 && length(breaks[[2]]) == 0 ||
+      all(is.na(breaks[[1]])) && all(is.na(breaks[[2]])))
+    return()
+  labels <- scale$get_labels(breaks)
 
-  #ticks <- as.data.frame(setNames(list(scale$map(breaks)), aesthetic %||% scale$aesthetics[1]))
-  #ticks$.value <- breaks
-  #ticks$.label <- scale$get_labels(breaks)
+  guide$ticks1 <- tibble(value = breaks[[1]], label = labels[[1]])
+  guide$ticks2 <- tibble(value = breaks[[2]], label = labels[[2]])
 
   # needed to make guide show, even if this is not how we keep track of labels and ticks
   key <- as.data.frame(
@@ -93,16 +101,20 @@ guide_train.colourbox <- function(guide, scale, aesthetic = NULL) {
   if (length(v2) == 0) {
     v2 = unique(limits[[2]])
   }
+  # box data matrix
   guide$box <- expand.grid(x = v1, y = v2)
   guide$box$colour <- scale$map(zip(guide$box$x, guide$box$y))
+
+  # keep track of individual values along x and y also
+  guide$box.x <- v1
+  guide$box.y <- v2
 
   ## need to think about proper implementation
   #if (guide$reverse) {
   #  guide$key <- guide$key[nrow(guide$key):1, ]
   #  guide$bar <- guide$bar[nrow(guide$bar):1, ]
   #}
-  #guide$hash <- with(guide, digest::digest(list(title, key$.label, bar, name)))
-  guide$hash <- digest::digest("colourbox") # temporary fix
+  guide$hash <- with(guide, digest::digest(list(title, ticks1, ticks2, name)))
   guide
 }
 
@@ -138,7 +150,6 @@ guide_gengrob.colourbox <- function(guide, theme) {
   title.x.position <- guide$title.x.position %||% "top"
   title.y.position <- guide$title.y.position %||% "right"
 
-
   boxwidth <- width_cm(theme$legend.key.width * 5)
   boxheight <- height_cm(theme$legend.key.height * 5)
   nbreak <- nrow(guide$key)
@@ -150,7 +161,117 @@ guide_gengrob.colourbox <- function(guide, theme) {
     gp = gpar(col = NA), interpolate = FALSE
   )
 
-  # titles
+  # make ticks and labels
+  tick.x.pos <- rescale(
+    guide$ticks1$value,
+    c(0.5, guide$nbin - 0.5),
+    guide$box.x[c(1, length(guide$box.x))]
+  ) * boxwidth / guide$nbin
+  label.x.pos <- unit(tick.x.pos, "cm")
+
+  tick.y.pos <- rescale(
+    guide$ticks2$value,
+    c(guide$nbin - 0.5, 0.5),
+    guide$box.y[c(1, length(guide$box.y))]
+  ) * boxheight / guide$nbin
+  label.y.pos <- unit(tick.y.pos, "cm")
+
+  # make the label grobs (`grob.label.x` and `grob.label.y`)
+
+  # get the label theme
+  label.theme <- guide$label.theme %||% calc_element("legend.text", theme)
+
+  # We break inheritance for hjust and vjust, because that's more intuitive here; it still allows manual
+  # setting of hjust and vjust if desired. The alternative is to ignore hjust and vjust altogether, which
+  # seems worse
+  if (is.null(guide$label.theme$hjust) && is.null(theme$legend.text$hjust)) label.theme$hjust <- NULL
+  if (is.null(guide$label.theme$vjust) && is.null(theme$legend.text$vjust)) label.theme$vjust <- NULL
+
+  # label.theme in param of guide_legend() > theme$legend.text.align > default
+  hjust <- label.theme$hjust %||% 0.5
+  vjust <- label.theme$vjust %||% 0.5
+
+  if (!guide$label) # are we drawing labels?
+    grob.label.x <- NULL
+  else {
+    x <- label.x.pos
+    y <- rep(vjust, length(label.x.pos))
+    margin_x <- FALSE
+    margin_y <- TRUE
+
+    label <- guide$ticks1$label
+
+    # If any of the labels are quoted language objects, convert them
+    # to expressions. Labels from formatter functions can return these
+    ## TODO: this should be a separate function to keep the code clean
+    # maybe scales::parse_format()?
+    if (any(vapply(label, is.call, logical(1)))) {
+      label <- lapply(
+        label,
+        function(l) {
+          if (is.call(l)) substitute(expression(x), list(x = l))
+          else l
+        }
+      )
+      label <- do.call(c, label)
+    }
+    grob.label.x <- element_grob(
+      element = label.theme,
+      label = label,
+      x = x,
+      y = y,
+      hjust = hjust,
+      vjust = vjust,
+      margin_x = margin_x,
+      margin_y = margin_y
+    )
+    grob.label.x <- ggname("guide.label.x", grob.label.x)
+  }
+
+  label.x.width <- width_cm(grob.label.x)
+  label.x.height <- height_cm(grob.label.x)
+
+  if (!guide$label) # are we drawing labels?
+    grob.label.y <- NULL
+  else {
+    x <- rep(hjust, length(label.y.pos))
+    y <- label.y.pos
+    margin_x <- TRUE
+    margin_y <- FALSE
+
+    label <- guide$ticks2$label
+
+    # If any of the labels are quoted language objects, convert them
+    # to expressions. Labels from formatter functions can return these
+    ## TODO: this should be a separate function to keep the code clean
+    # maybe scales::parse_format()?
+    if (any(vapply(label, is.call, logical(1)))) {
+      label <- lapply(
+        label,
+        function(l) {
+          if (is.call(l)) substitute(expression(x), list(x = l))
+          else l
+        }
+      )
+      label <- do.call(c, label)
+    }
+    grob.label.y <- element_grob(
+      element = label.theme,
+      label = label,
+      x = x,
+      y = y,
+      hjust = hjust,
+      vjust = vjust,
+      margin_x = margin_x,
+      margin_y = margin_y
+    )
+    grob.label.y <- ggname("guide.label.y", grob.label.y)
+  }
+
+  label.y.width <- width_cm(grob.label.y)
+  label.y.height <- height_cm(grob.label.y)
+
+  # make titles
 
   # obtain the theme for the legend title. We need this both for the title grob
   # and to obtain the title fontsize.
@@ -215,6 +336,10 @@ guide_gengrob.colourbox <- function(guide, theme) {
 
   widths <- c(padding[4], 0, 0, 0, 0, boxwidth, 0, 0, 0, 0, padding[2])
   heights <- c(padding[1], 0, 0, 0, 0, boxheight, 0, 0, 0, 0, padding[3])
+
+  ## TODO: need to figure out where and how to correctly set label sizes
+  heights[4] <- label.x.height
+  widths[8] <- label.y.width
 
   # titles
   grob.title.x.top <- NULL
@@ -281,28 +406,41 @@ guide_gengrob.colourbox <- function(guide, theme) {
   )
   if (!is.null(grob.title.x.top)) {
     gt <- gtable_add_grob(
-      gt, grob.title.x.top, name = "title.x", clip = "off",
+      gt, grob.title.x.top, name = "title.x.top", clip = "off",
       t = 2, r = 6, b = 2, l = 6
+    )
+  }
+  if (!is.null(grob.label.x)) {
+    gt <- gtable_add_grob(
+      gt, grob.label.x, name = "label.x.top", clip = "off",
+      t = 4, r = 6, b = 4, l = 6
     )
   }
   if (!is.null(grob.title.x.bottom)) {
     gt <- gtable_add_grob(
-      gt, grob.title.x.bottom, name = "title.x", clip = "off",
+      gt, grob.title.x.bottom, name = "title.x.bottom", clip = "off",
       t = 10, r = 6, b = 10, l = 6
     )
   }
   if (!is.null(grob.title.y.left)) {
     gt <- gtable_add_grob(
-      gt, grob.title.y.left, name = "title.y", clip = "off",
+      gt, grob.title.y.left, name = "title.y.left", clip = "off",
       t = 6, r = 2, b = 6, l = 2
     )
   }
   if (!is.null(grob.title.y.right)) {
     gt <- gtable_add_grob(
-      gt, grob.title.y.right, name = "title.y", clip = "off",
+      gt, grob.title.y.right, name = "title.y.right", clip = "off",
       t = 6, r = 10, b = 6, l = 10
     )
   }
+  if (!is.null(grob.label.y)) {
+    gt <- gtable_add_grob(
+      gt, grob.label.y, name = "label.y.top", clip = "off",
+      t = 6, r = 8, b = 6, l = 8
+    )
+  }
+
 
   gt
 }
