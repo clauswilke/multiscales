@@ -5,18 +5,15 @@
 \alias{ScaleBivariate}
 \alias{bivariate_scale}
 \title{Constructor for bivariate scale object}
-\format{An object of class \code{ScaleBivariate} (inherits from \code{Scale}, \code{ggproto}, \code{gg}) of length 17.}
+\format{An object of class \code{ScaleBivariate} (inherits from \code{Scale}, \code{ggproto}, \code{gg}) of length 16.}
 \usage{
-bivariate_scale(aesthetics, scale_name, palette, name = waiver(),
-  breaks = waiver(), labels = waiver(), limits = NULL,
-  rescaler1 = rescale, rescaler2 = rescale, oob = censor,
-  expand = waiver(), na.value = NA_real_, trans1 = "identity",
-  trans2 = "identity", guide = "none", super = ScaleBivariate)
+bivariate_scale(aesthetics, palette, name = waiver(), breaks = waiver(),
+  labels = waiver(), limits = NULL, rescaler = rescale, oob = censor,
+  expand = waiver(), na.value = NA_real_, trans = "identity",
+  guide = "none", super = ScaleBivariate, scale_name = "bivariate_scale")
 }
 \arguments{
 \item{aesthetics}{The names of the aesthetics that this scale works with}
-
-\item{scale_name}{The name of the scale}
 
 \item{palette}{A palette function that when called with a single integer
 argument (the number of levels in the scale) returns the values that
@@ -49,9 +46,8 @@ as output
 
 \item{limits}{Data frame with two columns of length two each defining the limits for the two data dimensions.}
 
-\item{rescaler1}{Rescaling function for the first data dimension.}
-
-\item{rescaler2}{Rescaling function for the second data dimension.}
+\item{rescaler}{Either one rescaling function applied to both data dimensions or list of two rescaling functions,
+one for each data dimension.}
 
 \item{oob}{Function that handles limits outside of the scale limits
 (out of bounds). The default replaces out of bounds values with NA.}
@@ -65,15 +61,16 @@ expand the scale by 5\% on each side for continuous variables, and by
 
 \item{na.value}{Missing values will be replaced with this value.}
 
-\item{trans1}{Transformation for the first data dimension, given as either the name of a transformation object
+\item{trans}{Either one transformation applied to both data dimensions or list of two transformations, one
+for each data dimension. Transformations can be given as either the name of a transformation object
 or the object itself. See \code{\link[ggplot2:continuous_scale]{ggplot2::continuous_scale()}} for details.}
-
-\item{trans2}{Transformation for the second data dimension. Like \code{trans1}.}
 
 \item{guide}{A function used to create a guide or its name. See
 \code{\link[=guides]{guides()}} for more info.}
 
 \item{super}{The super class to use for the constructed scale}
+
+\item{scale_name}{The name of the scale}
 }
 \description{
 Constructor for bivariate scale object

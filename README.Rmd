@@ -38,8 +38,7 @@ library(colorspace)
 ggplot(FL_house_values, aes(fill = zip(estimate, moe/estimate))) +
   geom_sf(color = "gray30", size = 0.2) +
   coord_sf(xlim = c(-88, -79.8), ylim = c(24.1, 31.2), datum = NA) +
-  bivariate_scale(
-    "fill", "bivariate_scale",
+  bivariate_scale("fill",
     pal_carto_vsup(palette = "Sunset", rev = TRUE),
     guide = "colourbox",
     name = c("median house values", "uncertainty")

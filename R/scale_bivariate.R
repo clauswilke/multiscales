@@ -3,11 +3,9 @@
 #' @export
 ScaleBivariate <- ggproto("ScaleBivariate", Scale,
   range = bivariate_range(),
-  rescaler1 = rescale,
-  rescaler2 = rescale,
+  rescaler = list(rescale, rescale),
   oob = censor,
-  trans1 = identity_trans,
-  trans2 = identity_trans,
+  trans = list(identity_trans, identity_trans),
 
   is_discrete = function() FALSE,
   is_bivariate = function() TRUE,
@@ -22,8 +20,8 @@ ScaleBivariate <- ggproto("ScaleBivariate", Scale,
     x1 <- unlist(transpose(x)[[1]])
     x2 <- unlist(transpose(x)[[2]])
 
-    x1 <- self$trans1$transform(x1)
-    x2 <- self$trans2$transform(x2)
+    x1 <- self$trans[[1]]$transform(x1)
+    x2 <- self$trans[[2]]$transform(x2)
 
     ## fix for data frames
     zip(x1, x2)
@@ -34,8 +32,8 @@ ScaleBivariate <- ggproto("ScaleBivariate", Scale,
     x1 <- unlist(transpose(x)[[1]])
     x2 <- unlist(transpose(x)[[2]])
 
-    x1 <- self$rescaler1(self$oob(x1, range = limits[[1]]), from = limits[[1]])
-    x2 <- self$rescaler2(self$oob(x2, range = limits[[2]]), from = limits[[2]])
+    x1 <- self$rescaler[[1]](self$oob(x1, range = limits[[1]]), from = limits[[1]])
+    x2 <- self$rescaler[[2]](self$oob(x2, range = limits[[2]]), from = limits[[2]])
 
     scaled <- self$palette(x1, x2)
 
@@ -58,17 +56,74 @@ ScaleBivariate <- ggproto("ScaleBivariate", Scale,
   },
 
   get_breaks = function(self, limits = self$get_limits()) {
-    NULL # not implemented
+    breaks1 <- self$get_breaks_1d(1, limits[[1]])
+    breaks2 <- self$get_breaks_1d(2, limits[[2]])
+
+    list(breaks1 = breaks1, breaks2 = breaks2)
   },
 
-  # The numeric position of scale breaks, used by coord/guide
-  break_positions = function(self, range = self$get_limits()) {
-    self$map(self$get_breaks(range))
+  # breaks for one data dimension
+  get_breaks_1d = function(self, i = 1, limits = self$get_limits()[[i]]) {
+    if (self$is_empty()) return(numeric(0))
+
+    # Limits in transformed space need to be converted back to data space
+    limits <- self$trans[[i]]$inverse(limits)
+
+    if (is.null(self$breaks)) {
+      return(NULL)
+    } else if (identical(self$breaks[[i]], NA)) {
+      stop("Invalid breaks specification. Use NULL, not NA")
+    } else if (zero_range(as.numeric(limits))) {
+      breaks <- limits[[i]][1]
+    } else if (is.waive(self$breaks[[i]])) {
+      breaks <- self$trans[[i]]$breaks(limits)
+    } else if (is.function(self$breaks[[i]])) {
+      breaks <- self$breaks[[i]](limits)
+    } else {
+      breaks <- self$breaks[[i]]
+    }
+
+    # Breaks in data space need to be converted back to transformed space
+    # And any breaks outside the dimensions need to be flagged as missing
+    #
+    # @kohske
+    # TODO: replace NA with something else for flag.
+    #       guides cannot discriminate oob from missing value.
+    breaks <- censor(self$trans[[i]]$transform(breaks), self$trans[[i]]$transform(limits),
+                     only.finite = FALSE)
+    breaks
   },
 
   get_labels = function(self, breaks = self$get_breaks()) {
-    NULL # not implemented
+    labels1 <- self$get_labels_1d(1, breaks[[1]])
+    labels2 <- self$get_labels_1d(2, breaks[[2]])
+
+    list(labels1 = labels1, labels2 = labels2)
   },
+
+  # labels for one data dimension
+  get_labels_1d = function(self, i = 1, breaks = self$get_breaks()[[i]]) {
+    if (is.null(breaks)) return(NULL)
+
+    breaks <- self$trans[[i]]$inverse(breaks)
+
+    if (is.null(self$labels[[i]])) {
+      return(NULL)
+    } else if (identical(self$labels[[i]], NA)) {
+      stop("Invalid labels specification. Use NULL, not NA", call. = FALSE)
+    } else if (is.waive(self$labels[[i]])) {
+      labels <- self$trans[[i]]$format(breaks)
+    } else if (is.function(self$labels[[i]])) {
+      labels <- self$labels[[i]](breaks)
+    } else {
+      labels <- self$labels[[i]]
+    }
+    if (length(labels) != length(breaks)) {
+      stop("Breaks and labels are different lengths")
+    }
+    labels
+  },
+
 
   clone = function(self) {
     new <- ggproto(NULL, self)
@@ -82,16 +137,20 @@ ScaleBivariate <- ggproto("ScaleBivariate", Scale,
 #'
 #' @inheritParams ggplot2::continuous_scale
 #' @param limits Data frame with two columns of length two each defining the limits for the two data dimensions.
-#' @param trans1 Transformation for the first data dimension, given as either the name of a transformation object
+#' @param trans Either one transformation applied to both data dimensions or list of two transformations, one
+#'   for each data dimension. Transformations can be given as either the name of a transformation object
 #'   or the object itself. See [`ggplot2::continuous_scale()`] for details.
-#' @param trans2 Transformation for the second data dimension. Like `trans1`.
-#' @param rescaler1 Rescaling function for the first data dimension.
-#' @param rescaler2 Rescaling function for the second data dimension.
+#' @param rescaler Either one rescaling function applied to both data dimensions or list of two rescaling functions,
+#'   one for each data dimension.
 #' @export
-bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
+bivariate_scale <- function(aesthetics, palette, name = waiver(),
                             breaks = waiver(), labels = waiver(), limits = NULL,
-                            rescaler1 = rescale, rescaler2 = rescale, oob = censor, expand = waiver(), na.value = NA_real_,
-                            trans1 = "identity", trans2 = "identity", guide = "none", super = ScaleBivariate) {
+                            rescaler = rescale, oob = censor, expand = waiver(), na.value = NA_real_,
+                            trans = "identity", guide = "none", super = ScaleBivariate,
+                            scale_name = "bivariate_scale") {
+
+  breaks <- bivariatize_arg(breaks, "breaks")
+  labels <- bivariatize_arg(labels, "labels")
 
   #check_breaks_labels(breaks, labels)
 
@@ -99,8 +158,13 @@ bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
   #  guide <- "none"
   #}
 
-  trans1 <- as.trans(trans1)
-  trans2 <- as.trans(trans2)
+  # TODO
+  # Need to bivariatize censor, oob, and expand
+  trans <- bivariatize_arg(trans, "trans")
+  trans[[1]] <- as.trans(trans[[1]])
+  trans[[2]] <- as.trans(trans[[2]])
+
+  rescaler <- bivariatize_arg(rescaler, "rescaler")
 
   if (!is.null(limits)) {
     # Check that limits are data frame or list with two columns of two values
@@ -112,8 +176,8 @@ bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
 
     # limits are given and valid, need to transform
     limits <- tibble(
-      limits1 = trans1$transform(limits[[1]]),
-      limits2 = trans2$transform(limits[[2]])
+      limits1 = trans[[1]]$transform(limits[[1]]),
+      limits2 = trans[[2]]$transform(limits[[2]])
     )
   }
 
@@ -127,12 +191,10 @@ bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
 
     range = bivariate_range(),
     limits = limits,
-    trans1 = trans1,
-    trans2 = trans2,
+    trans = trans,
     na.value = na.value,
     expand = expand,
-    rescaler1 = rescaler1,
-    rescaler2 = rescaler2,
+    rescaler = rescaler,
     oob = oob,
 
     name = name,
@@ -141,4 +203,16 @@ bivariate_scale <- function(aesthetics, scale_name, palette, name = waiver(),
     labels = labels,
     guide = guide
   )
+}
+
+bivariatize_arg <- function(arg, name = "argument") {
+  if (!is.null(oldClass(arg)) || is.function(arg) || is.atomic(arg)) {
+    return(list(arg, arg))
+  }
+
+  if (!is.list(arg) || length(arg) != 2) {
+    stop(paste0("In `bivariate_scale()`, argument `", name, "` needs to be given either as one argument applied to both data dimensions or as a list of exactly two arguments."), call. = FALSE)
+  }
+
+  arg
 }
