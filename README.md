@@ -38,7 +38,7 @@ ggplot(FL_house_values, aes(fill = zip(estimate/1000, moe/estimate))) +
     limits = list(c(0, 400), c(0, 0.4)),
     breaks = list(waiver(), c(0.05, 0.15, 0.25, 0.35)),
     labels = list(waiver(), scales::percent),
-    guide = "colourbox"
+    guide = "colourfan"
   ) +
   theme_void() +
   theme(

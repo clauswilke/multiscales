@@ -1,7 +1,7 @@
-#' Colourbox guide
+#' Colourfan guide
 #'
 #' @export
-guide_colourbox <- function(
+guide_colourfan <- function(
 
   # title
   title = waiver(),
@@ -18,7 +18,7 @@ guide_colourbox <- function(
   # bar
   barwidth = NULL,
   barheight = NULL,
-  nbin = 100,
+  nbin = 32,
 
   # general
   reverse = FALSE,
@@ -55,22 +55,22 @@ guide_colourbox <- function(
     # parameter
     available_aes = available_aes,
     ...,
-    name = "colourbox"),
-    class = c("guide", "colourbox")
+    name = "colourfan"),
+    class = c("guide", "colourfan")
   )
 }
 
 #' @export
-guide_train.colourbox <- function(guide, scale, aesthetic = NULL) {
+guide_train.colourfan <- function(guide, scale, aesthetic = NULL) {
 
   # do nothing if scale are inappropriate
   if (length(intersect(scale$aesthetics, guide$available_aes)) == 0) {
-    warning("colorbox guide needs appropriate scales: ",
+    warning("colorfan guide needs appropriate scales: ",
             paste(guide$available_aes, collapse = ", "))
     return(NULL)
   }
   if (!scale$is_bivariate()) {
-    warning("colorbox guide needs bivariate scales.")
+    warning("colorfan guide needs bivariate scales.")
     return(NULL)
   }
 
@@ -91,7 +91,7 @@ guide_train.colourbox <- function(guide, scale, aesthetic = NULL) {
   )
   guide$key <- key
 
-  # box specification
+  # fan specification
   limits <- scale$get_limits()
   v1 <- seq(limits[[1]][1], limits[[1]][2], length = guide$nbin)
   if (length(v1) == 0) {
@@ -101,13 +101,13 @@ guide_train.colourbox <- function(guide, scale, aesthetic = NULL) {
   if (length(v2) == 0) {
     v2 = unique(limits[[2]])
   }
-  # box data matrix
-  guide$box <- expand.grid(x = v1, y = v2)
-  guide$box$colour <- scale$map(zip(guide$box$x, guide$box$y))
+  # fan data matrix
+  guide$fan <- expand.grid(x = v1, y = v2)
+  guide$fan$colour <- scale$map(zip(guide$fan$x, guide$fan$y))
 
   # keep track of individual values along x and y also
-  guide$box.x <- v1
-  guide$box.y <- v2
+  guide$fan.x <- v1
+  guide$fan.y <- v2
 
   ## need to think about proper implementation
   #if (guide$reverse) {
@@ -120,13 +120,13 @@ guide_train.colourbox <- function(guide, scale, aesthetic = NULL) {
 
 # simply discards the new guide
 #' @export
-guide_merge.colourbox <- function(guide, new_guide) {
+guide_merge.colourfan <- function(guide, new_guide) {
   guide
 }
 
 # this guide is not geom-based.
 #' @export
-guide_geom.colourbox <- function(guide, layers, default_mapping) {
+guide_geom.colourfan <- function(guide, layers, default_mapping) {
   # Layers that use this guide
   guide_layers <- plyr::llply(layers, function(layer) {
     matched <- matched_aes(layer, guide, default_mapping)
@@ -146,34 +146,30 @@ guide_geom.colourbox <- function(guide, layers, default_mapping) {
 }
 
 #' @export
-guide_gengrob.colourbox <- function(guide, theme) {
+guide_gengrob.colourfan <- function(guide, theme) {
   title.x.position <- guide$title.x.position %||% "top"
   title.y.position <- guide$title.y.position %||% "right"
 
-  boxwidth <- width_cm(theme$legend.key.width * 5)
-  boxheight <- height_cm(theme$legend.key.height * 5)
+  fanwidth <- width_cm(theme$legend.key.width * 5)
+  fanheight <- height_cm(theme$legend.key.height * 5)
   nbreak <- nrow(guide$key)
 
-  # make the colourbox grob (`grob.box`)
-  image <- matrix(guide$box$colour, nrow = guide$nbin, ncol = guide$nbin, byrow = TRUE)
-  grob.box <- rasterGrob(
-    image = image, width = boxwidth, height = boxheight, default.units = "cm",
-    gp = gpar(col = NA), interpolate = FALSE
-  )
+  # make the fan grob (`grob.fan`)
+  grob.fan <- colourfan_grob(guide$fan$colour, nrow = guide$nbin, ncol = guide$nbin)
 
   # make ticks and labels
   tick.x.pos <- rescale(
     guide$ticks1$value,
     c(0.5, guide$nbin - 0.5),
-    guide$box.x[c(1, length(guide$box.x))]
-  ) * boxwidth / guide$nbin
+    guide$fan.x[c(1, length(guide$fan.x))]
+  ) * fanwidth / guide$nbin
   label.x.pos <- unit(tick.x.pos, "cm")
 
   tick.y.pos <- rescale(
     guide$ticks2$value,
     c(guide$nbin - 0.5, 0.5),
-    guide$box.y[c(1, length(guide$box.y))]
-  ) * boxheight / guide$nbin
+    guide$fan.y[c(1, length(guide$fan.y))]
+  ) * fanheight / guide$nbin
   label.y.pos <- unit(tick.y.pos, "cm")
 
   # make the label grobs (`grob.label.x` and `grob.label.y`)
@@ -331,11 +327,11 @@ guide_gengrob.colourbox <- function(guide, theme) {
   padding <- convertUnit(theme$legend.margin %||% margin(), "cm")
 
   # we set up the entire legend as an 11x11 table which contains:
-  # margin, title, gap, labels, ticks, box, ticks, labels, gap, title, margin
+  # margin, title, gap, labels, ticks, fan, ticks, labels, gap, title, margin
   # depending on where titles and labels are added, some cells remain empty
 
-  widths <- c(padding[4], 0, 0, 0, 0, boxwidth, 0, 0, 0, 0, padding[2])
-  heights <- c(padding[1], 0, 0, 0, 0, boxheight, 0, 0, 0, 0, padding[3])
+  widths <- c(padding[4], 0, 0, 0, 0, fanwidth, 0, 0, 0, 0, padding[2])
+  heights <- c(padding[1], 0, 0, 0, 0, fanheight, 0, 0, 0, 0, padding[3])
 
   ## TODO: need to figure out where and how to correctly set label sizes
   heights[4] <- label.x.height
@@ -401,7 +397,7 @@ guide_gengrob.colourbox <- function(guide, theme) {
     t = 1, r = -1, b = -1, l = 1
   )
   gt <- gtable_add_grob(
-    gt, grob.box, name = "box", clip = "off",
+    gt, grob.fan, name = "fan", clip = "off",
     t = 6, r = 6, b = 6, l = 6
   )
   if (!is.null(grob.title.x.top)) {
@@ -446,5 +442,30 @@ guide_gengrob.colourbox <- function(guide, theme) {
 }
 
 #' @export
-#' @rdname guide_colourbox
-guide_colorbox <- guide_colourbox
+#' @rdname guide_colourfan
+guide_colorfan <- guide_colourfan
+
+
+colourfan_grob <- function(colours, nrow, ncol, nmunch = 10) {
+  # the trick is that we first make square polygons and then transform coordinates
+  dx <- 1 / ncol
+  dy <- 1 / nrow
+
+  # grid of base points
+  x <- rep((0:(ncol-1))/ncol, nrow)
+  y <- rep(((nrow-1):0)/nrow, each = ncol)
+
+  # turn into polygon boundaries
+  x <- unlist(lapply(x, function(x) c(x+dx*(0:nmunch)/nmunch, x+dx*(nmunch:0)/nmunch)))
+  y <- unlist(lapply(y, function(y) c(rep(y, nmunch + 1), rep(y+dy, nmunch + 1))))
+  id <- rep(1:(nrow*ncol), each = 22)
+
+  # now transform coordinates and make polygon
+  phi <- (x * 60 - 30)*(pi/180)
+  r <- y
+  Y <- r * cos(phi)
+  X <- r * sin(phi) + 0.5
+  polygonGrob(X, Y, id, gp = gpar(fill = colours, col = colours, lwd = 0.5, lty = 1))
+}
+
+
