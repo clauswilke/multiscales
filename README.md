@@ -20,8 +20,10 @@ stable. No user support provided.
 
 ## Examples
 
-Visualizing both the median house value and its uncertainty for Florida
-counties:
+Visualizing the lead/lag of Clinton vs. Trump in the 2016 presidential
+election jointly with the uncertainty of the lead/lag estimates. This
+visualization shows that for many states the outcome was difficult to
+predict.
 
 ``` r
 library(ggplot2)
@@ -52,7 +54,8 @@ ggplot(US_polling) +
 
 ![](man/figures/README-unnamed-chunk-2-1.png)<!-- -->
 
-For comparison, the same plot with a univariate color scale:
+For comparison, the same plot with a univariate color scale. Not it
+appears that in every state we know who is in the lead.
 
 ``` r
 ggplot(US_polling) + 

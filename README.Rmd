@@ -29,7 +29,7 @@ This is an experimental package. Use at your own risk. API is not stable. No use
 
 ## Examples
 
-Visualizing both the median house value and its uncertainty for Florida counties:
+Visualizing the lead/lag of Clinton vs. Trump in the 2016 presidential election jointly with the uncertainty of the lead/lag estimates. This visualization shows that for many states the outcome was difficult to predict.
 ```{r message = FALSE}
 library(ggplot2)
 library(multiscales)
@@ -57,7 +57,7 @@ ggplot(US_polling) +
   )
 ```
 
-For comparison, the same plot with a univariate color scale:
+For comparison, the same plot with a univariate color scale. Not it appears that in every state we know who is in the lead.
 ```{r message = FALSE}
 ggplot(US_polling) + 
   geom_sf(aes(fill = Clinton_lead), color = "gray30", size = 0.2) + 
