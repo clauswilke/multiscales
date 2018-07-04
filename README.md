@@ -23,7 +23,10 @@ stable. No user support provided.
 Visualizing the lead/lag of Clinton vs. Trump in the 2016 presidential
 election jointly with the uncertainty of the lead/lag estimates. This
 visualization shows that for many states the outcome was difficult to
-predict.
+predict. (Example taken from Correll et al., [Value-Suppressing
+Uncertainty
+Palettes](https://idl.cs.washington.edu/files/2018-UncertaintyPalettes-CHI.pdf),
+CHI 2018.)
 
 ``` r
 library(ggplot2)
