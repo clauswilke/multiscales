@@ -8,13 +8,13 @@
 guide_colourfan(title = waiver(), title.x.position = "top",
   title.y.position = "right", title.theme = NULL, title.hjust = NULL,
   title.vjust = NULL, label = TRUE, label.theme = NULL, barwidth = NULL,
-  barheight = NULL, nbin = 100, reverse = FALSE, order = 0,
+  barheight = NULL, nbin = 32, reverse = FALSE, order = 0,
   available_aes = c("colour", "color", "fill"), ...)
 
 guide_colorfan(title = waiver(), title.x.position = "top",
   title.y.position = "right", title.theme = NULL, title.hjust = NULL,
   title.vjust = NULL, label = TRUE, label.theme = NULL, barwidth = NULL,
-  barheight = NULL, nbin = 100, reverse = FALSE, order = 0,
+  barheight = NULL, nbin = 32, reverse = FALSE, order = 0,
   available_aes = c("colour", "color", "fill"), ...)
 }
 \description{

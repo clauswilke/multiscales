@@ -40,7 +40,7 @@ ggplot(FL_house_values, aes(fill = zip(estimate/1000, moe/estimate))) +
   geom_sf(color = "gray30", size = 0.2) +
   coord_sf(xlim = c(-88, -79.8), ylim = c(24.1, 31.2), datum = NA) +
   bivariate_scale("fill",
-    pal_carto_vsup(palette = "Sunset", rev = TRUE),
+    pal_vsup_viridis(),
     name = c("median house\nvalues ($1K)", "uncertainty"),
     limits = list(c(0, 400), c(0, 0.4)),
     breaks = list(waiver(), c(0.05, 0.15, 0.25, 0.35)),
@@ -61,8 +61,8 @@ For comparison, the same plot with a univariate color scale:
 ggplot(FL_house_values, aes(fill = estimate/1000)) +
   geom_sf(color = "gray30", size = 0.2) +
   coord_sf(xlim = c(-88, -79.8), ylim = c(24.1, 31.2), datum = NA) +
-  scale_fill_continuous_carto(
-    palette = "Sunset", rev = TRUE,
+  scale_fill_viridis_c(
+    option = "E", begin = 0.3, end = 0.9, direction = -1,
     name = "median house values ($1K)",
     limits = c(0, 400),
     guide = guide_colorbar(
