@@ -162,15 +162,16 @@ guide_gengrob.colourfan <- function(guide, theme) {
     guide$ticks1$value,
     c(0.5, guide$nbin - 0.5),
     guide$fan.x[c(1, length(guide$fan.x))]
-  ) * fanwidth / guide$nbin
-  label.x.pos <- unit(tick.x.pos, "cm")
+  ) / guide$nbin
 
   tick.y.pos <- rescale(
     guide$ticks2$value,
     c(guide$nbin - 0.5, 0.5),
     guide$fan.y[c(1, length(guide$fan.y))]
-  ) * fanheight / guide$nbin
-  label.y.pos <- unit(tick.y.pos, "cm")
+  ) / guide$nbin
+
+  label.x.pos <- transform_radial(tibble(x = tick.x.pos, y = 1), yoff = 0.04)
+  label.y.pos <- transform_radial(tibble(x = 1, y = tick.y.pos), xoff = 0.04)
 
   # make the label grobs (`grob.label.x` and `grob.label.y`)
 
@@ -190,10 +191,10 @@ guide_gengrob.colourfan <- function(guide, theme) {
   if (!guide$label) # are we drawing labels?
     grob.label.x <- NULL
   else {
-    x <- label.x.pos
-    y <- rep(vjust, length(label.x.pos))
+    x <- unit(fanwidth*label.x.pos$x, "cm")
+    y <- unit(fanheight*label.x.pos$y, "cm")
     margin_x <- FALSE
-    margin_y <- TRUE
+    margin_y <- FALSE
 
     label <- guide$ticks1$label
 
@@ -216,8 +217,8 @@ guide_gengrob.colourfan <- function(guide, theme) {
       label = label,
       x = x,
       y = y,
-      hjust = hjust,
-      vjust = vjust,
+      hjust = 0.5,
+      vjust = 0,
       margin_x = margin_x,
       margin_y = margin_y
     )
@@ -230,9 +231,9 @@ guide_gengrob.colourfan <- function(guide, theme) {
   if (!guide$label) # are we drawing labels?
     grob.label.y <- NULL
   else {
-    x <- rep(hjust, length(label.y.pos))
-    y <- label.y.pos
-    margin_x <- TRUE
+    x <- unit(fanwidth*label.y.pos$x, "cm")
+    y <- unit(fanheight*label.y.pos$y, "cm")
+    margin_x <- FALSE
     margin_y <- FALSE
 
     label <- guide$ticks2$label
@@ -256,8 +257,8 @@ guide_gengrob.colourfan <- function(guide, theme) {
       label = label,
       x = x,
       y = y,
-      hjust = hjust,
-      vjust = vjust,
+      hjust = 0,
+      vjust = 0.5,
       margin_x = margin_x,
       margin_y = margin_y
     )
@@ -300,17 +301,20 @@ guide_gengrob.colourfan <- function(guide, theme) {
   if (is.null(title.y.label) || is.na(title.y.label)) {
     title.y.position <- "none"
   } else {
-    grob.title.y <- ggname(
-      "guide.title.y",
-      element_grob(
-        title.theme,
-        label = title.y.label,
-        hjust = title.hjust,
-        vjust = title.vjust,
-        angle = -90, # angle hard-coded for now, needs to be fixed eventually, also further down in `justify_grobs()`
-        margin_x = TRUE,
-        margin_y = TRUE
-      )
+    title.y.pos <- transform_radial(
+      tibble(x = 1, y = 0.5), xoff = 0.3
+    )
+
+    grob.title.y <- element_grob(
+      element = title.theme,
+      label = title.y.label,
+      x = unit(fanwidth * title.y.pos$x, "cm"),
+      y = unit(fanheight * title.y.pos$y, "cm"),
+      hjust = 0.4,
+      vjust = 0,
+      angle = 60,
+      margin_x = FALSE,
+      margin_y = FALSE
     )
     title.y.width <- width_cm(grob.title.y)
     title.y.height <- height_cm(grob.title.y)
@@ -320,8 +324,8 @@ guide_gengrob.colourfan <- function(guide, theme) {
   # the default horizontal and vertical gap need to be the same to avoid strange
   # effects for certain guide layouts
   title_fontsize <- title.theme$size %||% calc_element("legend.title", theme)$size %||% 0
-  hgap <- width_cm(theme$legend.spacing.x  %||% (0.5 * unit(title_fontsize, "pt")))
-  vgap <- height_cm(theme$legend.spacing.y %||% (0.5 * unit(title_fontsize, "pt")))
+  hgap <- width_cm(theme$legend.spacing.x  %||% (0.25 * unit(title_fontsize, "pt")))
+  vgap <- height_cm(theme$legend.spacing.y %||% (0.25 * unit(title_fontsize, "pt")))
 
   # legend padding
   padding <- convertUnit(theme$legend.margin %||% margin(), "cm")
@@ -334,8 +338,8 @@ guide_gengrob.colourfan <- function(guide, theme) {
   heights <- c(padding[1], 0, 0, 0, 0, fanheight, 0, 0, 0, 0, padding[3])
 
   ## TODO: need to figure out where and how to correctly set label sizes
-  heights[4] <- label.x.height
-  widths[8] <- label.y.width
+  heights[4] <- label.x.height - fanheight*(1 - min(label.x.pos$y))
+  widths[8] <- label.y.width - fanwidth*(1 - min(label.y.pos$x))
 
   # titles
   grob.title.x.top <- NULL
@@ -365,27 +369,10 @@ guide_gengrob.colourfan <- function(guide, theme) {
 
   grob.title.y.left <- NULL
   grob.title.y.right <- NULL
-  if (title.y.position %in% c("left", "both")) {
-    widths[2] <- title.y.width
-    widths[3] <- hgap
-    grob.title.y.left <- justify_grobs(
-      grob.title.y,
-      hjust = title.hjust,
-      vjust = title.vjust,
-      int_angle = -90,
-      debug = title.theme$debug
-    )
-  }
   if (title.y.position %in% c("right", "both")) {
-    widths[10] <- title.y.width
-    widths[9] <- hgap
-    grob.title.y.right <- justify_grobs(
-      grob.title.y,
-      hjust = title.hjust,
-      vjust = title.vjust,
-      int_angle = -90,
-      debug = title.theme$debug
-    )
+    #widths[10] <- title.y.width
+    #widths[9] <- hgap
+    grob.title.y.right <- grob.title.y
   }
 
   # background
@@ -409,7 +396,7 @@ guide_gengrob.colourfan <- function(guide, theme) {
   if (!is.null(grob.label.x)) {
     gt <- gtable_add_grob(
       gt, grob.label.x, name = "label.x.top", clip = "off",
-      t = 4, r = 6, b = 4, l = 6
+      t = 6, r = 6, b = 6, l = 6
     )
   }
   if (!is.null(grob.title.x.bottom)) {
@@ -427,13 +414,13 @@ guide_gengrob.colourfan <- function(guide, theme) {
   if (!is.null(grob.title.y.right)) {
     gt <- gtable_add_grob(
       gt, grob.title.y.right, name = "title.y.right", clip = "off",
-      t = 6, r = 10, b = 6, l = 10
+      t = 6, r = 6, b = 6, l = 6
     )
   }
   if (!is.null(grob.label.y)) {
     gt <- gtable_add_grob(
       gt, grob.label.y, name = "label.y.top", clip = "off",
-      t = 6, r = 8, b = 6, l = 8
+      t = 6, r = 6, b = 6, l = 6
     )
   }
 
@@ -461,11 +448,19 @@ colourfan_grob <- function(colours, nrow, ncol, nmunch = 10) {
   id <- rep(1:(nrow*ncol), each = 22)
 
   # now transform coordinates and make polygon
-  phi <- (x * 60 - 30)*(pi/180)
-  r <- y
-  Y <- r * cos(phi)
-  X <- r * sin(phi) + 0.5
-  polygonGrob(X, Y, id, gp = gpar(fill = colours, col = colours, lwd = 0.5, lty = 1))
+  data <- transform_radial(tibble(x, y))
+  polygonGrob(data$x, data$y, id, gp = gpar(fill = colours, col = colours, lwd = 0.5, lty = 1))
 }
 
+
+# map square into fan
+# assumes x and y run from 0 to 1
+# x runs left to right
+# y runs top to bottom
+transform_radial <- function(data, xoff = 0, yoff = 0) {
+  phi <- (data$x * 60 - 30)*(pi/180)
+  Y <- (data$y + yoff) * cos(phi) - xoff * sin(60*pi/360)
+  X <- (data$y + yoff) * sin(phi) + 0.5 + xoff * cos(60*pi/360)
+  tibble(x = X, y = Y)
+}
 

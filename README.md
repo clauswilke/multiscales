@@ -45,7 +45,7 @@ ggplot(FL_house_values, aes(fill = zip(estimate/1000, moe/estimate))) +
     legend.key.size = grid::unit(0.8, "cm"),
     legend.title.align = 0.5,
     legend.justification = c(0, 0),
-    legend.position = c(0.1, 0.2)
+    legend.position = c(0.1, 0.15)
   )
 ```
 
