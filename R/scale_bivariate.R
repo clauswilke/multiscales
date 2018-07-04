@@ -17,6 +17,9 @@ ScaleBivariate <- ggproto("ScaleBivariate", Scale,
 
   transform = function(self, x) {
     ## fix for data frames
+    if (!is.list(x)) {
+      stop("For bivariate scale, aesthetic needs to be a list of two data columns. Did you forget `zip()`?", call. = FALSE)
+    }
     x1 <- unlist(transpose(x)[[1]])
     x2 <- unlist(transpose(x)[[2]])
 

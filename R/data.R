@@ -49,3 +49,13 @@
 #'   )
 #'
 "FL_house_values"
+
+#' Polling data from the 2016 US presidential election
+#'
+#' Polling data from the 2016 US presidential election.
+#'
+#' @source
+#' Michael Correll, Dominik Moritz, Jeffrey Heer (2018) Value-Suppressing Uncertainty Palettes.
+#' ACM Human Factors in Computing Systems (CHI)
+#' https://github.com/uwdata/papers-vsup/tree/master/examples
+"US_polling"
