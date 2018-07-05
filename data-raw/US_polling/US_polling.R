@@ -5,6 +5,8 @@
 #   Michael Correll, Dominik Moritz, Jeffrey Heer
 #   ACM Human Factors in Computing Systems (CHI), 2018
 
+# Electoral Votes taken from: https://state.1keydata.com/state-electoral-votes.php
+
 library(sf)
 library(readr)
 library(dplyr)
@@ -29,5 +31,20 @@ polling <- read_csv(here("data-raw", "US_polling", "polling.csv")) %>%
 
 US_polling <- left_join(polling, rename(usa_albers, State = name))
 
+ec_votes <- read_csv(here("data-raw", "US_polling", "electoral_votes.csv")) %>%
+  rename(ec_votes = `Electoral Votes`)
+
+US_polling <- left_join(US_polling, ec_votes)
+
+# turn into sf data frame
+US_polling <- st_as_sf(US_polling)
+
 devtools::use_data(US_polling, overwrite = TRUE)
+
+
+# also make cartogram version
+library(cartogram)
+US_polling_cartogram <- cartogram_cont(US_polling, 'ec_votes')
+
+devtools::use_data(US_polling_cartogram, overwrite = TRUE)
 

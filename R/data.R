@@ -52,10 +52,15 @@
 
 #' Polling data from the 2016 US presidential election
 #'
-#' Polling data from the 2016 US presidential election.
+#' Polling data from the 2016 US presidential election, combined with map of US states. Also provided is an
+#' alternative map in cartogram style where each state is scaled in proportion to the number of electoral
+#' college votes it has.
 #'
 #' @source
 #' Michael Correll, Dominik Moritz, Jeffrey Heer (2018) Value-Suppressing Uncertainty Palettes.
 #' ACM Human Factors in Computing Systems (CHI)
-#' https://github.com/uwdata/papers-vsup/tree/master/examples
+#' \url{https://github.com/uwdata/papers-vsup/tree/master/examples}
 "US_polling"
+
+#' @rdname US_polling
+"US_polling_cartogram"
