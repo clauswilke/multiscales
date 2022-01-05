@@ -21,7 +21,7 @@ Imports:
     scales,
     viridisLite,
     withr (>= 2.1.1)
-License: GPL-2 | file LICENSE
+License: MIT + file LICENSE
 LazyData: true
 Suggests:
     dplyr,
