@@ -128,7 +128,7 @@ guide_merge.colourfan <- function(guide, new_guide) {
 #' @export
 guide_geom.colourfan <- function(guide, layers, default_mapping) {
   # Layers that use this guide
-  guide_layers <- plyr::llply(layers, function(layer) {
+  guide_layers <- lapply(layers, function(layer) {
     matched <- matched_aes(layer, guide, default_mapping)
 
     if (length(matched) && ((is.na(layer$show.legend) || layer$show.legend))) {
@@ -140,7 +140,7 @@ guide_geom.colourfan <- function(guide, layers, default_mapping) {
   })
 
   # Remove this guide if no layer uses it
-  if (length(plyr::compact(guide_layers)) == 0) guide <- NULL
+  if (length(compact(guide_layers)) == 0) guide <- NULL
 
   guide
 }
@@ -150,8 +150,8 @@ guide_gengrob.colourfan <- function(guide, theme) {
   title.x.position <- guide$title.x.position %||% "top"
   title.y.position <- guide$title.y.position %||% "right"
 
-  fanwidth <- width_cm(theme$legend.key.width * 5)
-  fanheight <- height_cm(theme$legend.key.height * 5)
+  fanwidth <- width_cm(legend_key_dim(theme, "width") * 5)
+  fanheight <- height_cm(legend_key_dim(theme, "height") * 5)
   nbreak <- nrow(guide$key)
 
   # make the fan grob (`grob.fan`)
@@ -324,11 +324,11 @@ guide_gengrob.colourfan <- function(guide, theme) {
   # the default horizontal and vertical gap need to be the same to avoid strange
   # effects for certain guide layouts
   title_fontsize <- title.theme$size %||% calc_element("legend.title", theme)$size %||% 0
-  hgap <- width_cm(theme$legend.spacing.x  %||% (0.25 * unit(title_fontsize, "pt")))
-  vgap <- height_cm(theme$legend.spacing.y %||% (0.25 * unit(title_fontsize, "pt")))
+  hgap <- width_cm(calc_theme_element(theme, "legend.spacing.x") %||% (0.25 * unit(title_fontsize, "pt")))
+  vgap <- height_cm(calc_theme_element(theme, "legend.spacing.y") %||% (0.25 * unit(title_fontsize, "pt")))
 
   # legend padding
-  padding <- convertUnit(theme$legend.margin %||% margin(), "cm")
+  padding <- convertUnit(calc_theme_element(theme, "legend.margin") %||% margin(), "cm")
 
   # we set up the entire legend as an 11x11 table which contains:
   # margin, title, gap, labels, ticks, fan, ticks, labels, gap, title, margin
@@ -338,8 +338,15 @@ guide_gengrob.colourfan <- function(guide, theme) {
   heights <- c(padding[1], 0, 0, 0, 0, fanheight, 0, 0, 0, 0, padding[3])
 
   ## TODO: need to figure out where and how to correctly set label sizes
-  heights[4] <- label.x.height - fanheight*(1 - min(label.x.pos$y))
-  widths[8] <- label.y.width - fanwidth*(1 - min(label.y.pos$x))
+  # `ticks*$value` can contain NA for breaks censored at the scale limits, which
+  # propagates into the radial label positions. Ignore NA positions so the
+  # legend layout dimensions stay finite.
+  min_label_x_y <- suppressWarnings(min(label.x.pos$y, na.rm = TRUE))
+  min_label_y_x <- suppressWarnings(min(label.y.pos$x, na.rm = TRUE))
+  if (!is.finite(min_label_x_y)) min_label_x_y <- 1
+  if (!is.finite(min_label_y_x)) min_label_y_x <- 1
+  heights[4] <- label.x.height - fanheight*(1 - min_label_x_y)
+  widths[8] <- label.y.width - fanwidth*(1 - min_label_y_x)
 
   # titles
   grob.title.x.top <- NULL

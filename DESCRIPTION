@@ -1,7 +1,7 @@
 Package: multiscales
 Type: Package
 Title: Multivariate scales for 'ggplot2'
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c( 
     person("Claus O.", "Wilke", , "wilke@austin.utexas.edu", c("cre", "aut")))
 Description: Multivariate scales for 'ggplot2'. 
@@ -13,9 +13,8 @@ Imports:
     digest,
     grid,
     gtable,
-    ggplot2 (>= 2.2.1),
+    ggplot2 (>= 3.5.0),
     purrr,
-    plyr,
     rlang,
     tibble,
     scales,
