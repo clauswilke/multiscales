@@ -128,7 +128,7 @@ guide_merge.colourbox <- function(guide, new_guide) {
 #' @export
 guide_geom.colourbox <- function(guide, layers, default_mapping) {
   # Layers that use this guide
-  guide_layers <- plyr::llply(layers, function(layer) {
+  guide_layers <- lapply(layers, function(layer) {
     matched <- matched_aes(layer, guide, default_mapping)
 
     if (length(matched) && ((is.na(layer$show.legend) || layer$show.legend))) {
@@ -140,7 +140,7 @@ guide_geom.colourbox <- function(guide, layers, default_mapping) {
   })
 
   # Remove this guide if no layer uses it
-  if (length(plyr::compact(guide_layers)) == 0) guide <- NULL
+  if (length(compact(guide_layers)) == 0) guide <- NULL
 
   guide
 }
@@ -150,8 +150,8 @@ guide_gengrob.colourbox <- function(guide, theme) {
   title.x.position <- guide$title.x.position %||% "top"
   title.y.position <- guide$title.y.position %||% "right"
 
-  boxwidth <- width_cm(theme$legend.key.width * 5)
-  boxheight <- height_cm(theme$legend.key.height * 5)
+  boxwidth <- width_cm(legend_key_dim(theme, "width") * 5)
+  boxheight <- height_cm(legend_key_dim(theme, "height") * 5)
   nbreak <- nrow(guide$key)
 
   # make the colourbox grob (`grob.box`)
@@ -324,11 +324,11 @@ guide_gengrob.colourbox <- function(guide, theme) {
   # the default horizontal and vertical gap need to be the same to avoid strange
   # effects for certain guide layouts
   title_fontsize <- title.theme$size %||% calc_element("legend.title", theme)$size %||% 0
-  hgap <- width_cm(theme$legend.spacing.x  %||% (0.5 * unit(title_fontsize, "pt")))
-  vgap <- height_cm(theme$legend.spacing.y %||% (0.5 * unit(title_fontsize, "pt")))
+  hgap <- width_cm(calc_theme_element(theme, "legend.spacing.x") %||% (0.5 * unit(title_fontsize, "pt")))
+  vgap <- height_cm(calc_theme_element(theme, "legend.spacing.y") %||% (0.5 * unit(title_fontsize, "pt")))
 
   # legend padding
-  padding <- convertUnit(theme$legend.margin %||% margin(), "cm")
+  padding <- convertUnit(calc_theme_element(theme, "legend.margin") %||% margin(), "cm")
 
   # we set up the entire legend as an 11x11 table which contains:
   # margin, title, gap, labels, ticks, box, ticks, labels, gap, title, margin

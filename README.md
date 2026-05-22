@@ -5,18 +5,26 @@
 
 Multivariate scales for ggplot2, written by Claus O. Wilke
 
+> **Fork note (compatibility update).** This fork updates `multiscales` to work
+> with **ggplot2 >= 3.5.0** (tested against ggplot2 4.0.3). The original package
+> relied on ggplot2 internals that were removed or renamed in the 3.5.0 guide
+> system rewrite, which caused installation to fail with
+> `object 'justify_grobs' not found` and, once that was patched, an empty/missing
+> legend. See `NEWS.md` for the full list of changes.
+
 ## Installation
 
-This package can be installed from github. It requires the development
-version of the colorspace package. It also requires ggplot2 3.0.0, which
-was released on July 3,
-    2018.
+This package can be installed from github. It requires ggplot2 (>= 3.5.0).
 
-    install.packages("colorspace", repos = "http://R-Forge.R-project.org")
-    devtools::install_github("clauswilke/multiscales")
+    # install.packages("devtools")
+    devtools::install_github("YOURNAME/multiscales")
 
 This is an experimental package. Use at your own risk. API is not
 stable. No user support provided.
+
+> Note: `pal_vsup_carto()` relies on `colorspace::carto_hcl()`, which is not part
+> of the exported colorspace API in recent colorspace releases. The other
+> palettes (`pal_vsup()`, `pal_vsup_viridis()`, `pal_hue_sat()`) are unaffected.
 
 ## Examples
 
